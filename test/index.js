@@ -6,10 +6,22 @@ const config = {
   logLevel: 'debug'
 };
 
-const sut = require('../')(config);
+test('logger without params', (t) => {
+  let sut;
+  t.throws(() => {
+    sut = require('../');
+  });
+});
 
 test('logger', (t) => {
+  const sut = require('../')(config);
   sut.debug('test');
   t.pass();
-  t.end();
+});
+
+test('logger', (t) => {
+  t.doesNotThrow(() => {
+    const sut = require('../');
+    sut.debug('test');
+  });
 });

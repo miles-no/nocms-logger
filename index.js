@@ -3,6 +3,8 @@
 const bunyan = require('bunyan');
 const logLevels = ['debug', 'info', 'warn', 'error'];
 
+let loggerApi;
+
 const getConfig = (cfg) => {
   const path = cfg.logFilePath || '/log';
 
@@ -75,6 +77,14 @@ const getLoggerFunc = (lvl, log) => {
 };
 
 module.exports = (cfg, serializers) => {
+  if (!cfg && loggerApi) {
+    return loggerApi;
+  }
+
+  if(!cfg){
+    throw new Error('Logger has not been initiated and must be called with config object');
+  }
+  
   const logConfig = getConfig(cfg);
 
   const log = bunyan.createLogger(logConfig);
@@ -83,8 +93,10 @@ module.exports = (cfg, serializers) => {
     console.log((new Date()).toISOString(), 'LOGGER ERROR', err);
   });
 
-  return logLevels.reduce((loggers, logLevel) => {
+  loggerApi = logLevels.reduce((loggers, logLevel) => {
     loggers[logLevel] = getLoggerFunc(logLevel, log);
     return loggers;
   }, {});
+
+  return loggerApi;
 };
