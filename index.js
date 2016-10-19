@@ -76,7 +76,7 @@ const getLoggerFunc = (lvl, log) => {
   }
 };
 
-module.exports = (cfg, serializers) => {
+module.exports = (cfg) => {
   if (!cfg && loggerApi) {
     return loggerApi;
   }
@@ -84,7 +84,7 @@ module.exports = (cfg, serializers) => {
   if(!cfg){
     throw new Error('Logger has not been initiated and must be called with config object');
   }
-  
+
   const logConfig = getConfig(cfg);
 
   const log = bunyan.createLogger(logConfig);

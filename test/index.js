@@ -3,25 +3,21 @@
 const test = require('tape');
 
 const config = {
-  logLevel: 'debug'
+  logLevel: 'debug',
+  logFilePath: __dirname + '/log',
 };
 
 test('logger without params', (t) => {
   let sut;
+  t.plan(1);
   t.throws(() => {
-    sut = require('../');
+    sut = require('../')();
   });
 });
 
-test('logger', (t) => {
+test('logger with config', (t) => {
+  t.plan(1);
   const sut = require('../')(config);
   sut.debug('test');
   t.pass();
-});
-
-test('logger', (t) => {
-  t.doesNotThrow(() => {
-    const sut = require('../');
-    sut.debug('test');
-  });
 });
