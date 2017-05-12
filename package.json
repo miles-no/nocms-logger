@@ -1,6 +1,6 @@
 {
   "name": "nocms-logger",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Logger package for NoCMS services",
   "main": "index.js",
   "scripts": {
