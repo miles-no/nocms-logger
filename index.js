@@ -1,6 +1,7 @@
 'use strict';
 
 const bunyan = require('bunyan');
+const bunyanMiddleware = require('bunyan-middleware');
 const logLevels = ['debug', 'info', 'warn', 'error'];
 
 let loggerApi;
@@ -97,6 +98,16 @@ module.exports = (cfg) => {
     loggers[logLevel] = getLoggerFunc(logLevel, log);
     return loggers;
   }, {});
+
+  loggerApi.express = () => {
+    return bunyanMiddleware({
+      headerName: 'X-Request-Id',
+      propertyName: 'reqId',
+      logName: 'req_id',
+      obscureHeaders: [],
+      logger: log
+    });
+  };
 
   return loggerApi;
 };
