@@ -94,14 +94,13 @@ module.exports = (cfg) => {
     console.log((new Date()).toISOString(), 'LOGGER ERROR', err);
   });
 
-  console.log('about to create logger api');
-
   loggerApi = logLevels.reduce((loggers, logLevel) => {
     loggers[logLevel] = getLoggerFunc(logLevel, log);
     return loggers;
   }, {});
 
   loggerApi.express = bunyanMiddleware({
+    headerName: 'X-Request-Id',
     propertyName: 'reqId',
     logName: 'req_id',
     obscureHeaders: [],
