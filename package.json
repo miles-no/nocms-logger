@@ -13,8 +13,7 @@
   "author": "Jørgen Landsnes",
   "license": "ISC",
   "dependencies": {
-    "bunyan": "1.8.10",
-    "bunyan-middleware": "0.8.0"
+    "bunyan": "1.8.10"
   },
   "devDependencies": {
     "tape": "^4.5.1"
