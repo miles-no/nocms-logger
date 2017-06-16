@@ -22,19 +22,11 @@ const getConfig = (cfg) => {
   if(logLevels.indexOf(cfg.logLevel) < 1){
     logConfig.streams.push({
       level: 'debug',
-      stream: process.stdout,
-    });
-    logConfig.streams.push({
-      level: 'debug',
       path: `${path}/debug.log`,
     });
   }
 
   if(logLevels.indexOf(cfg.logLevel) < 2){
-    logConfig.streams.push({
-      level: 'info',
-      stream: process.stdout,
-    });
     logConfig.streams.push({
       level: 'info',
       path: `${path}/info.log`,
@@ -44,19 +36,11 @@ const getConfig = (cfg) => {
   if(logLevels.indexOf(cfg.logLevel) < 3){
     logConfig.streams.push({
       level: 'warn',
-      stream: process.stdout,
-    });
-    logConfig.streams.push({
-      level: 'warn',
       path: `${path}/warn.log`,
     });
   }
 
   if(logLevels.indexOf(cfg.logLevel) < 4){
-    logConfig.streams.push({
-      level: 'error',
-      stream: process.stderr,
-    });
     logConfig.streams.push({
       level: 'error',
       path: `${path}/error.log`,
