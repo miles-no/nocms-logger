@@ -14,11 +14,11 @@ const getConfig = (cfg) => {
     serializers: cfg.serializers
   };
 
-  if(cfg.noFileOutput) {
-    setStdStreams(logConfig, cfg);
+  if(cfg.useFileStreams) {
+    setFileStreams(logConfig, cfg);
   }
   else {
-    setFileStreams(logConfig, cfg);
+    setStdStreams(logConfig, cfg);
   }
 
   return logConfig;
@@ -30,31 +30,24 @@ const setStdStreams = (logConfig, cfg) => {
     stream: process.stderr,
   });
 
-  if(logLevels.indexOf(cfg.logLevel) < 1){
+  if(logLevels.indexOf(cfg.logLevel) === 0){
     logConfig.streams.push({
       level: 'debug',
       stream: process.stdout,
     });
   }
 
-  if(logLevels.indexOf(cfg.logLevel) < 2){
+  if(logLevels.indexOf(cfg.logLevel) === 1){
     logConfig.streams.push({
       level: 'info',
       stream: process.stdout,
     });
   }
 
-  if(logLevels.indexOf(cfg.logLevel) < 3){
+  if(logLevels.indexOf(cfg.logLevel) === 2){
     logConfig.streams.push({
       level: 'warn',
       stream: process.stdout,
-    });
-  }
-
-  if(logLevels.indexOf(cfg.logLevel) < 4){
-    logConfig.streams.push({
-      level: 'error',
-      stream: process.stderr,
     });
   }
 }
