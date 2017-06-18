@@ -14,11 +14,57 @@ const getConfig = (cfg) => {
     serializers: cfg.serializers
   };
 
+  if(cfg.noFileOutput) {
+    setStdStreams(logConfig, cfg);
+  }
+  else {
+    setFileStreams(logConfig, cfg);
+  }
+
+  return logConfig;
+};
+
+const setStdStreams = (logConfig, cfg) => {
+  logConfig.streams.push({
+    level: 'error',
+    stream: process.stderr,
+  });
+
+  if(logLevels.indexOf(cfg.logLevel) < 1){
+    logConfig.streams.push({
+      level: 'debug',
+      stream: process.stdout,
+    });
+  }
+
+  if(logLevels.indexOf(cfg.logLevel) < 2){
+    logConfig.streams.push({
+      level: 'info',
+      stream: process.stdout,
+    });
+  }
+
+  if(logLevels.indexOf(cfg.logLevel) < 3){
+    logConfig.streams.push({
+      level: 'warn',
+      stream: process.stdout,
+    });
+  }
+
+  if(logLevels.indexOf(cfg.logLevel) < 4){
+    logConfig.streams.push({
+      level: 'error',
+      stream: process.stderr,
+    });
+  }
+}
+
+const setFileStreams = (logConfig, cfg) => {
   logConfig.streams.push({
     level: 'error',
     path: `${path}/error.log`,
   });
-  
+
   if(logLevels.indexOf(cfg.logLevel) < 1){
     logConfig.streams.push({
       level: 'debug',
@@ -46,10 +92,7 @@ const getConfig = (cfg) => {
       path: `${path}/error.log`,
     });
   }
-
-  return logConfig;
-};
-
+}
 
 const doLog = (logger, level, entry, fields) => {
   if(!logger[level]){
