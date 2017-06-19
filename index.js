@@ -25,28 +25,15 @@ const getConfig = (cfg) => {
 };
 
 const setStdStreams = (logConfig, cfg) => {
-  logConfig.streams.push({
-    level: 'error',
-    stream: process.stderr,
-  });
-
-  if(logLevels.indexOf(cfg.logLevel) === 0){
+  if(cfg.logLevel === 'error') {
     logConfig.streams.push({
-      level: 'debug',
-      stream: process.stdout,
+      level: 'error',
+      stream: process.stderr,
     });
   }
-
-  if(logLevels.indexOf(cfg.logLevel) === 1){
+  else {
     logConfig.streams.push({
-      level: 'info',
-      stream: process.stdout,
-    });
-  }
-
-  if(logLevels.indexOf(cfg.logLevel) === 2){
-    logConfig.streams.push({
-      level: 'warn',
+      level: cfg.logLevel || 'info',
       stream: process.stdout,
     });
   }
