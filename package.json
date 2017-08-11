@@ -2,7 +2,7 @@
   "name": "nocms-logger",
   "version": "0.0.0-semantic-release",
   "description": "Logger package for NoCMS services",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "node test/",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
@@ -14,7 +14,8 @@
   "author": "Jørgen Landsnes",
   "license": "ISC",
   "dependencies": {
-    "bunyan": "1.8.10"
+    "bunyan": "1.8.10",
+    "strftime": "^0.10.0"
   },
   "devDependencies": {
     "condition-circle": "^1.5.0",

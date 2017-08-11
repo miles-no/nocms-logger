@@ -1,121 +1,101 @@
-'use strict';
+const strftime = require('strftime');
+const fs = require('fs');
 
-const bunyan = require('bunyan');
-const logLevels = ['debug', 'info', 'warn', 'error'];
+const config = {};
 
-let loggerApi;
+const logLevels = {
+  debug: 1,
+  info: 2,
+  warn: 3,
+  error: 4,
+};
 
-const getConfig = (cfg) => {
-  const path = cfg.logFilePath || '/log';
+const throwErr = (err) => {
+  if (err) {
+    throw err;
+  }
+};
 
-  const logConfig = {
-    name: cfg.name || 'nocms_logger',
-    streams: [],
-    serializers: cfg.serializers
+const setConfig = (cfg = {}) => {
+  const { logLevel, dateFormat, logFormat, output, outputConfig } = cfg;
+
+  config.logLevel = 1;
+  config.dateFormat = dateFormat || 'iso';
+  config.logFormat = logFormat || '%D %L %M';
+  config.output = output || 'console';
+  config.outputConfig = outputConfig;
+
+  if (logLevels[logLevel]) {
+    config.logLevel = logLevels[logLevel];
+  } else if (typeof logLevel === 'number' && logLevel <= logLevels.error && logLevel >= logLevels.debug) {
+    config.logLevel = logLevel;
+  } else if (!!logLevel) {
+
+    throw new Error(`Invalid log level, ${logLevel + ' ' + typeof logLevel}, must be either ['debug', 'info', 'warn', 'error', 1, 2, 3, 4]`);
+  }
+};
+
+const formatLogEntry = (formatStr, msg, timestamp, logLevel) => {
+  const fields = {
+    '%D': timestamp,
+    '%M': msg,
+    '%L': logLevel,
   };
-
-  if(cfg.useFileStreams) {
-    setFileStreams(logConfig, cfg);
-  }
-  else {
-    setStdStreams(logConfig, cfg);
-  }
-
-  return logConfig;
+  return formatStr.replace(/%[DLM]/g, (m) => {
+    return fields[m] || m;
+  });
 };
 
-const setStdStreams = (logConfig, cfg) => {
-  if(cfg.logLevel === 'error') {
-    logConfig.streams.push({
-      level: 'error',
-      stream: process.stderr,
-    });
+const stringify = (msgObj) => {
+  if (msgObj instanceof Array) {
+    return `[${msgObj.join(', ')}]`;
   }
-  else {
-    logConfig.streams.push({
-      level: cfg.logLevel || 'info',
-      stream: process.stdout,
-    });
+  if (typeof msgObj === 'object') {
+    return JSON.stringify(msgObj, null, '  ');
+  }
+};
+
+const output = (msg, logLevel) => {
+  if (config.output === 'console') {
+    console.log(msg);
+  }
+  if(config.output === 'none') {
+    return msg;
+  }
+  if (config.output === 'file') {
+    const logLevelString = typeof logLevel === 'number' ? logLevels[logLevel] : logLevel;
+    if (!config.outputConfig || (!config.outputConfig.all && !config.outputConfig[logLevelString])) {
+      throw new Error(`Missing outputConfig for file logging with log level ${logLevelString}`);
+    }
+    if (config.outputConfig.all) {
+      fs.appendFile(config.outputConfig.all.file, `${msg}\n`, throwErr);
+    }
+
+    if (config.outputConfig[logLevelString]) {
+      fs.appendFile(config.outputConfig[logLevelString].file, msg, throwErr);
+    }
+  }
+  return msg;
+};
+
+const doLog = (level) => {
+  return (msg) => {
+    if (level >= config.logLevel) {
+      const msgStr = typeof msg === 'string' ? msg : stringify(msg);
+      const timestamp = config.dateFormat === 'iso' ? (new Date()).toISOString() : strftime(config.dateFormat);
+      const logLevel = config.logLevel;
+
+      return output(formatLogEntry(config.logFormat, msgStr, timestamp, logLevel), logLevel);
+    }
   }
 }
 
-const setFileStreams = (logConfig, cfg) => {
-  logConfig.streams.push({
-    level: 'error',
-    path: `${path}/error.log`,
-  });
+setConfig();
 
-  if(logLevels.indexOf(cfg.logLevel) < 1){
-    logConfig.streams.push({
-      level: 'debug',
-      path: `${path}/debug.log`,
-    });
-  }
-
-  if(logLevels.indexOf(cfg.logLevel) < 2){
-    logConfig.streams.push({
-      level: 'info',
-      path: `${path}/info.log`,
-    });
-  }
-
-  if(logLevels.indexOf(cfg.logLevel) < 3){
-    logConfig.streams.push({
-      level: 'warn',
-      path: `${path}/warn.log`,
-    });
-  }
-
-  if(logLevels.indexOf(cfg.logLevel) < 4){
-    logConfig.streams.push({
-      level: 'error',
-      path: `${path}/error.log`,
-    });
-  }
-}
-
-const doLog = (logger, level, entry, fields) => {
-  if(!logger[level]){
-    logger.debug('Attempted to log with an invalid log level: "' + level + '"');
-    return;
-  }
-
-  if(fields){
-    logger[level](fields, entry);
-    return;
-  }
-  logger[level](entry);
-};
-
-const getLoggerFunc = (lvl, log) => {
-  const level = lvl;
-  const logger = log;
-  return (entry, fields) => {
-    doLog(logger, level, entry, fields);
-  }
-};
-
-module.exports = (cfg) => {
-  if (!cfg && loggerApi) {
-    return loggerApi;
-  }
-
-  if(!cfg){
-    throw new Error('Logger has not been initiated and must be called with config object');
-  }
-
-  const logConfig = getConfig(cfg);
-
-  const log = bunyan.createLogger(logConfig);
-
-  log.on('error', function(err, stream){
-    console.log((new Date()).toISOString(), 'LOGGER ERROR', err);
-  });
-
-  loggerApi = logLevels.reduce((loggers, logLevel) => {
-    loggers[logLevel] = getLoggerFunc(logLevel, log);
-    return loggers;
-  }, {});
-
-  return loggerApi;
+module.exports = {
+  debug: doLog(1),
+  info: doLog(2),
+  warn: doLog(3),
+  error: doLog(4),
+  setConfig,
 };
