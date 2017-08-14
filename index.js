@@ -17,14 +17,14 @@ const throwErr = (err) => {
 };
 
 const setConfig = (cfg = {}) => {
-  const { logLevel, dateFormat, logFormat, output, outputConfig } = cfg;
+  const { logLevel, dateFormat, logFormat, output, outputConfig, serializers } = cfg;
 
   config.logLevel = 1;
   config.dateFormat = dateFormat || 'iso';
   config.logFormat = logFormat || '%D %L %M';
   config.output = output || 'console';
   config.outputConfig = outputConfig;
-
+  config.serializers = serializers || {};
   if (logLevels[logLevel]) {
     config.logLevel = logLevels[logLevel];
   } else if (typeof logLevel === 'number' && logLevel <= logLevels.error && logLevel >= logLevels.debug) {
@@ -35,10 +35,23 @@ const setConfig = (cfg = {}) => {
   }
 };
 
-const formatLogEntry = (formatStr, msg, timestamp, logLevel) => {
+const formatLogEntry = (formatStr, msg, timestamp, logLevel, serializer) => {
+
+  let messageContent;
+  if (typeof serializer === 'function') {
+    messageContent = serializer(msg);
+  }
+  if (typeof serializer === 'string') {
+    if (!config.serializers[serializer]) {
+      throw new Error(`Missing serializer ${serializer} for message: ${JSON.stringify(msg)}`)
+    }
+    messageContent = config.serializers[serializer](msg);
+  }
+
+  messageContent = messageContent || stringify(msg);
   const fields = {
     '%D': timestamp,
-    '%M': msg,
+    '%M': messageContent,
     '%L': logLevel,
   };
   return formatStr.replace(/%[DLM]/g, (m) => {
@@ -53,6 +66,7 @@ const stringify = (msgObj) => {
   if (typeof msgObj === 'object') {
     return JSON.stringify(msgObj, null, '  ');
   }
+  return msgObj;
 };
 
 const output = (msg, logLevel) => {
@@ -79,13 +93,12 @@ const output = (msg, logLevel) => {
 };
 
 const doLog = (level) => {
-  return (msg) => {
+  return (msg, serializer) => {
     if (level >= config.logLevel) {
-      const msgStr = typeof msg === 'string' ? msg : stringify(msg);
       const timestamp = config.dateFormat === 'iso' ? (new Date()).toISOString() : strftime(config.dateFormat);
       const logLevel = config.logLevel;
 
-      return output(formatLogEntry(config.logFormat, msgStr, timestamp, logLevel), logLevel);
+      return output(formatLogEntry(config.logFormat, msg, timestamp, logLevel, serializer), logLevel);
     }
   }
 }

@@ -119,6 +119,8 @@ test('custom format', (t) => {
   const config = {
     logFormat: '%L %M',
   };
+
+  sut = require('../');
   sut.setConfig(config);
 
   const result = sut.debug('foo');
@@ -127,7 +129,51 @@ test('custom format', (t) => {
 
 test('log object', (t) => {
   t.plan(1);
+  sut = require('../');
 
   const result = sut.debug({ foo: 1, bar: 2 });
   t.equal(result, '1 {\n  "foo": 1,\n  "bar": 2\n}')
+});
+
+test('custom serializer function', (t) => {
+  t.plan(1);
+
+  const config = {
+    logFormat: '%L %M',
+  };
+  sut = require('../');
+  sut.setConfig(config);
+  const result = sut.debug({ foo: 1, bar: 2 }, (fooobject) => {
+    return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;
+  });
+  t.equal(result, '1 Foo=1 and bar=2');
+});
+
+test('custom serializer reference', (t) => {
+  t.plan(1);
+
+  const config = {
+    logFormat: '%L %M',
+    serializers: {
+      'fooSerializer': (fooobject) => {
+        return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;
+      },
+    },
+  };
+  sut = require('../');
+  sut.setConfig(config);
+  const result = sut.debug({ foo: 1, bar: 2 }, (fooobject) => {
+    return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;
+  });
+  t.equal(result, '1 Foo=1 and bar=2');
+});
+
+
+test('invalid custom serializer', (t) => {
+  t.plan(1);
+
+  sut = require('../');
+  t.throws(() => {
+    const result = sut.debug({ foo: 1, bar: 2 }, 'invalidSerializer');
+  });
 });
