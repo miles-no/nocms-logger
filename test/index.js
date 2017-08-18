@@ -117,7 +117,7 @@ test('custom date format', (t) => {
 test('custom format', (t) => {
   t.plan(1);
   const config = {
-    logFormat: '%L %M',
+    logFormat: '%L %C',
   };
 
   sut = require('../');
@@ -139,7 +139,7 @@ test('custom serializer function', (t) => {
   t.plan(1);
 
   const config = {
-    logFormat: '%L %M',
+    logFormat: '%L %C',
   };
   sut = require('../');
   sut.setConfig(config);
@@ -153,7 +153,7 @@ test('custom serializer reference', (t) => {
   t.plan(1);
 
   const config = {
-    logFormat: '%L %M',
+    logFormat: '%L %C',
     serializers: {
       'fooSerializer': (fooobject) => {
         return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;

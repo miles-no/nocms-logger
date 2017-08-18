@@ -21,7 +21,7 @@ const setConfig = (cfg = {}) => {
 
   config.logLevel = 1;
   config.timestampFormat = timestampFormat || 'iso';
-  config.logFormat = logFormat || '%D %L %M';
+  config.logFormat = logFormat || '%T %L %C';
   config.output = output || 'console';
   config.outputConfig = outputConfig;
   config.serializers = serializers || {};
@@ -35,46 +35,46 @@ const setConfig = (cfg = {}) => {
   }
 };
 
-const formatLogEntry = (formatStr, msg, timestamp, logLevel, serializer) => {
+const formatLogEntry = (formatStr, contentArg, timestamp, logLevel, serializer) => {
 
-  let messageContent;
+  let content;
   if (typeof serializer === 'function') {
-    messageContent = serializer(msg);
+    content = serializer(contentArg);
   }
   if (typeof serializer === 'string') {
     if (!config.serializers[serializer]) {
-      throw new Error(`Missing serializer ${serializer} for message: ${JSON.stringify(msg)}`)
+      throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(contentArg)}`)
     }
-    messageContent = config.serializers[serializer](msg);
+    content = config.serializers[serializer](contentArg);
   }
 
-  messageContent = messageContent || stringify(msg);
+  content = content || stringify(contentArg);
   const fields = {
-    '%D': timestamp,
-    '%M': messageContent,
+    '%T': timestamp,
+    '%C': content,
     '%L': logLevel,
   };
-  return formatStr.replace(/%[DLM]/g, (m) => {
+  return formatStr.replace(/%[TLC]/g, (m) => {
     return fields[m] || m;
   });
 };
 
-const stringify = (msgObj) => {
-  if (msgObj instanceof Array) {
-    return `[${msgObj.join(', ')}]`;
+const stringify = (contentObj) => {
+  if (contentObj instanceof Array) {
+    return `[${contentObj.join(', ')}]`;
   }
-  if (typeof msgObj === 'object') {
-    return JSON.stringify(msgObj, null, '  ');
+  if (typeof contentObj === 'object') {
+    return JSON.stringify(contentObj, null, '  ');
   }
-  return msgObj;
+  return contentObj;
 };
 
-const output = (msg, logLevel) => {
+const output = (content, logLevel) => {
   if (config.output === 'console') {
-    console.log(msg);
+    console.log(content);
   }
   if(config.output === 'none') {
-    return msg;
+    return content;
   }
   if (config.output === 'file') {
     const logLevelString = typeof logLevel === 'number' ? logLevels[logLevel] : logLevel;
@@ -82,23 +82,23 @@ const output = (msg, logLevel) => {
       throw new Error(`Missing outputConfig for file logging with log level ${logLevelString}`);
     }
     if (config.outputConfig.all) {
-      fs.appendFile(config.outputConfig.all.file, `${msg}\n`, throwErr);
+      fs.appendFile(config.outputConfig.all.file, `${content}\n`, throwErr);
     }
 
     if (config.outputConfig[logLevelString]) {
-      fs.appendFile(config.outputConfig[logLevelString].file, msg, throwErr);
+      fs.appendFile(config.outputConfig[logLevelString].file, content, throwErr);
     }
   }
-  return msg;
+  return content;
 };
 
 const doLog = (level) => {
-  return (msg, serializer) => {
+  return (content, serializer) => {
     if (level >= config.logLevel) {
       const timestamp = config.timestampFormat === 'iso' ? (new Date()).toISOString() : strftime(config.timestampFormat);
       const logLevel = config.logLevel;
 
-      return output(formatLogEntry(config.logFormat, msg, timestamp, logLevel, serializer), logLevel);
+      return output(formatLogEntry(config.logFormat, content, timestamp, logLevel, serializer), logLevel);
     }
   }
 }
