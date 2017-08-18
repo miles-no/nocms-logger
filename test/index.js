@@ -104,7 +104,7 @@ test('custom date format', (t) => {
   t.plan(1);
 
   const config = {
-    dateFormat: '%d.%m.%Y-%H:%M',
+    timestampFormat: '%d.%m.%Y-%H:%M',
   };
 
   sut = require('../');

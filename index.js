@@ -17,10 +17,10 @@ const throwErr = (err) => {
 };
 
 const setConfig = (cfg = {}) => {
-  const { logLevel, dateFormat, logFormat, output, outputConfig, serializers } = cfg;
+  const { logLevel, timestampFormat, logFormat, output, outputConfig, serializers } = cfg;
 
   config.logLevel = 1;
-  config.dateFormat = dateFormat || 'iso';
+  config.timestampFormat = timestampFormat || 'iso';
   config.logFormat = logFormat || '%D %L %M';
   config.output = output || 'console';
   config.outputConfig = outputConfig;
@@ -95,7 +95,7 @@ const output = (msg, logLevel) => {
 const doLog = (level) => {
   return (msg, serializer) => {
     if (level >= config.logLevel) {
-      const timestamp = config.dateFormat === 'iso' ? (new Date()).toISOString() : strftime(config.dateFormat);
+      const timestamp = config.timestampFormat === 'iso' ? (new Date()).toISOString() : strftime(config.timestampFormat);
       const logLevel = config.logLevel;
 
       return output(formatLogEntry(config.logFormat, msg, timestamp, logLevel, serializer), logLevel);
