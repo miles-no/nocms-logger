@@ -16,14 +16,22 @@ const throwErr = (err) => {
   }
 };
 
+const getLogLevelString = (logLevel) => {
+  switch (logLevel) {
+    case 1: return 'debug';
+    case 2: return 'info';
+    case 3: return 'warn';
+    case 4: return 'error';
+  }
+}
+
 const setConfig = (cfg = {}) => {
-  const { logLevel, timestampFormat, logFormat, output, outputConfig, serializers } = cfg;
+  const { logLevel, timestampFormat, logFormat, output, serializers } = cfg;
 
   config.logLevel = 1;
   config.timestampFormat = timestampFormat || 'iso';
   config.logFormat = logFormat || '%T %L %C';
-  config.output = output || 'console';
-  config.outputConfig = outputConfig;
+  config.output = output || { all: 'console' };
   config.serializers = serializers || {};
   if (logLevels[logLevel]) {
     config.logLevel = logLevels[logLevel];
@@ -69,26 +77,39 @@ const stringify = (contentObj) => {
   return contentObj;
 };
 
-const output = (content, logLevel) => {
-  if (config.output === 'console') {
-    console.log(content);
-  }
-  if(config.output === 'none') {
-    return content;
-  }
-  if (config.output === 'file') {
-    const logLevelString = typeof logLevel === 'number' ? logLevels[logLevel] : logLevel;
-    if (!config.outputConfig || (!config.outputConfig.all && !config.outputConfig[logLevelString])) {
-      throw new Error(`Missing outputConfig for file logging with log level ${logLevelString}`);
-    }
-    if (config.outputConfig.all) {
-      fs.appendFile(config.outputConfig.all.file, `${content}\n`, throwErr);
-    }
 
-    if (config.outputConfig[logLevelString]) {
-      fs.appendFile(config.outputConfig[logLevelString].file, content, throwErr);
+
+
+const output = (content, logLevel) => {
+  const logLevelString = typeof logLevel === 'number' ? getLogLevelString(logLevel) : logLevel;
+  const outputConfig = config.output[logLevelString];
+  const outputFunc = (oc) => {
+    if (oc === 'console') {
+      console.log(content);
     }
+    if(oc === 'none') {
+      return;
+    }
+    if (typeof oc === 'object') {
+
+      if (!oc.file) {
+        throw new Error(`Missing file path (file) for log level ${logLevelString}`);
+      }
+
+      fs.appendFile(oc.file, `${content}\n`, throwErr);
+    }
+  };
+
+  if (outputConfig instanceof Array) {
+    outputConfig.forEach((oc) => outputFunc(oc));
+  } else {
+    outputFunc(outputConfig);
   }
+
+  if (config.output.all) {
+    outputFunc(config.output.all);
+  }
+
   return content;
 };
 
@@ -98,7 +119,7 @@ const doLog = (level) => {
       const timestamp = config.timestampFormat === 'iso' ? (new Date()).toISOString() : strftime(config.timestampFormat);
       const logLevel = config.logLevel;
 
-      return output(formatLogEntry(config.logFormat, content, timestamp, logLevel, serializer), logLevel);
+      return output(formatLogEntry(config.logFormat, content, timestamp, level, serializer), level);
     }
   }
 }

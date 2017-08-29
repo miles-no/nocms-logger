@@ -56,7 +56,9 @@ test('should throw for invalid log level', (t) => {
 test('should throw for file logging with missing file config', (t) => {
   t.plan(1);
   const config = {
-    output: 'file',
+    output: {
+      info: {}
+    },
   };
 
   sut = require('../');
@@ -67,12 +69,26 @@ test('should throw for file logging with missing file config', (t) => {
   });
 });
 
-test.skip('should log to file', (t) => {
+test.skip('should support multiple outputs for each log level', (t) => {
   t.plan(1);
   const config = {
-    output: 'file',
-    outputConfig: {
-      all: { file: 'logs/all.txt' },
+    output: {
+      info: ['console', { file: 'logs/info.log' }],
+    },
+  };
+
+  sut = require('../');
+  sut.setConfig(config);
+
+  sut.info('foo');
+  t.pass();
+});
+
+test('should log to file', (t) => {
+  t.plan(1);
+  const config = {
+    output: {
+      all: { file: 'logs/all.log' },
     },
   };
 
