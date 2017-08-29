@@ -71,8 +71,13 @@ const stringify = (contentObj) => {
   if (contentObj instanceof Array) {
     return `[${contentObj.join(', ')}]`;
   }
+
   if (typeof contentObj === 'object') {
-    return JSON.stringify(contentObj, null, '  ');
+    if (contentObj instanceof Error) {
+      return contentObj.stack;
+    } else {
+      return JSON.stringify(contentObj, null, '  ');
+    }
   }
   return contentObj;
 };
