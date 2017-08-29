@@ -107,7 +107,11 @@ const output = (content, logLevel) => {
   }
 
   if (config.output.all) {
-    outputFunc(config.output.all);
+    if (config.output.all instanceof Array) {
+      config.output.all.forEach((oc) => outputFunc(oc));
+    } else {
+      outputFunc(config.output.all);
+    }
   }
 
   return content;
