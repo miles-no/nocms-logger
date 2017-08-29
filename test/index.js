@@ -84,7 +84,7 @@ test.skip('should support multiple outputs for each log level', (t) => {
   t.pass();
 });
 
-test('should log to file', (t) => {
+test.skip('should log to file', (t) => {
   t.plan(1);
   const config = {
     output: {
