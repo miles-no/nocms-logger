@@ -193,3 +193,11 @@ test('invalid custom serializer', (t) => {
     const result = sut.debug({ foo: 1, bar: 2 }, 'invalidSerializer');
   });
 });
+
+test('should serialize Error objects with stack trace', (t) => {
+  t.plan(1);
+
+  sut = require('../');
+  const result = sut.debug(new Error('foo'));
+  t.ok(/^1 Error: foo[\s]+at Test.test/.test(result))
+});
