@@ -14,7 +14,7 @@
   "author": "Jørgen Landsnes",
   "license": "ISC",
   "dependencies": {
-    "bunyan": "1.8.10",
+    "bunyan": "^1.8.12",
     "fs": "0.0.1-security",
     "strftime": "^0.10.0"
   },
