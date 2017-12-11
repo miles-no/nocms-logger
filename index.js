@@ -18,12 +18,12 @@ const throwErr = (err) => {
 
 const getLogLevelString = (logLevel) => {
   switch (logLevel) {
-    case 1: return 'debug';
     case 2: return 'info';
     case 3: return 'warn';
     case 4: return 'error';
+    default: return 'debug';
   }
-}
+};
 
 const setConfig = (cfg = {}) => {
   const { logLevel, timestampFormat, logFormat, output, serializers } = cfg;
@@ -37,24 +37,36 @@ const setConfig = (cfg = {}) => {
     config.logLevel = logLevels[logLevel];
   } else if (typeof logLevel === 'number' && logLevel <= logLevels.error && logLevel >= logLevels.debug) {
     config.logLevel = logLevel;
-  } else if (!!logLevel) {
-
-    throw new Error(`Invalid log level, ${logLevel + ' ' + typeof logLevel}, must be either ['debug', 'info', 'warn', 'error', 1, 2, 3, 4]`);
+  } else if (logLevel) {
+    throw new Error(`Invalid log level, ${`${logLevel} ${typeof logLevel}`}, must be either ['debug', 'info', 'warn', 'error', 1, 2, 3, 4]`);
   }
 };
 
 const formatLogEntry = (formatStr, contentArg, timestamp, logLevel, serializer) => {
-
   let content;
   if (typeof serializer === 'function') {
     content = serializer(contentArg);
   }
   if (typeof serializer === 'string') {
     if (!config.serializers[serializer]) {
-      throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(contentArg)}`)
+      throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(contentArg)}`);
     }
     content = config.serializers[serializer](contentArg);
   }
+
+  const stringify = (contentObj) => {
+    if (contentObj instanceof Array) {
+      return `[${contentObj.join(', ')}]`;
+    }
+
+    if (typeof contentObj === 'object') {
+      if (contentObj instanceof Error) {
+        return contentObj.stack;
+      }
+      return JSON.stringify(contentObj, null, '  ');
+    }
+    return contentObj;
+  };
 
   content = content || stringify(contentArg);
   const fields = {
@@ -67,24 +79,6 @@ const formatLogEntry = (formatStr, contentArg, timestamp, logLevel, serializer) 
   });
 };
 
-const stringify = (contentObj) => {
-  if (contentObj instanceof Array) {
-    return `[${contentObj.join(', ')}]`;
-  }
-
-  if (typeof contentObj === 'object') {
-    if (contentObj instanceof Error) {
-      return contentObj.stack;
-    } else {
-      return JSON.stringify(contentObj, null, '  ');
-    }
-  }
-  return contentObj;
-};
-
-
-
-
 const output = (content, logLevel) => {
   const logLevelString = typeof logLevel === 'number' ? getLogLevelString(logLevel) : logLevel;
   const outputConfig = config.output[logLevelString];
@@ -92,11 +86,10 @@ const output = (content, logLevel) => {
     if (oc === 'console') {
       console.log(content);
     }
-    if(oc === 'none') {
+    if (oc === 'none') {
       return;
     }
     if (typeof oc === 'object') {
-
       if (!oc.file) {
         throw new Error(`Missing file path (file) for log level ${logLevelString}`);
       }
@@ -106,14 +99,14 @@ const output = (content, logLevel) => {
   };
 
   if (outputConfig instanceof Array) {
-    outputConfig.forEach((oc) => outputFunc(oc));
+    outputConfig.forEach((oc) => { return outputFunc(oc); });
   } else {
     outputFunc(outputConfig);
   }
 
   if (config.output.all) {
     if (config.output.all instanceof Array) {
-      config.output.all.forEach((oc) => outputFunc(oc));
+      config.output.all.forEach((oc) => { return outputFunc(oc); });
     } else {
       outputFunc(config.output.all);
     }
@@ -126,12 +119,13 @@ const doLog = (level) => {
   return (content, serializer) => {
     if (level >= config.logLevel) {
       const timestamp = config.timestampFormat === 'iso' ? (new Date()).toISOString() : strftime(config.timestampFormat);
-      const logLevel = config.logLevel;
 
       return output(formatLogEntry(config.logFormat, content, timestamp, level, serializer), level);
     }
-  }
-}
+
+    return null;
+  };
+};
 
 setConfig();
 
