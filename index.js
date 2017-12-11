@@ -1,5 +1,6 @@
 const strftime = require('strftime');
 const fs = require('fs');
+const defaultSerializers = require('./serializers');
 
 const config = {};
 
@@ -26,13 +27,14 @@ const getLogLevelString = (logLevel) => {
 };
 
 const setConfig = (cfg = {}) => {
-  const { logLevel, timestampFormat, logFormat, output, serializers } = cfg;
+  const { logLevel, timestampFormat, logFormat, output, serializers, logAsJson } = cfg;
 
   config.logLevel = 1;
   config.timestampFormat = timestampFormat || 'iso';
   config.logFormat = logFormat || '%T %L %C';
   config.output = output || { all: 'console' };
-  config.serializers = serializers || {};
+  config.serializers = Object.assign(defaultSerializers, serializers || {});
+  config.logAsJson = logAsJson || false;
   if (logLevels[logLevel]) {
     config.logLevel = logLevels[logLevel];
   } else if (typeof logLevel === 'number' && logLevel <= logLevels.error && logLevel >= logLevels.debug) {
@@ -42,7 +44,7 @@ const setConfig = (cfg = {}) => {
   }
 };
 
-const formatLogEntry = (formatStr, contentArg, timestamp, logLevel, serializer) => {
+const formatLogEntry = (formatStr, message, contentArg, timestamp, logLevel, serializer) => {
   let content;
   if (typeof serializer === 'function') {
     content = serializer(contentArg);
@@ -71,7 +73,7 @@ const formatLogEntry = (formatStr, contentArg, timestamp, logLevel, serializer) 
   content = content || stringify(contentArg);
   const fields = {
     '%T': timestamp,
-    '%C': content,
+    '%C': content ? `${message} ${content}` : message,
     '%L': logLevel,
   };
   return formatStr.replace(/%[TLC]/g, (m) => {
@@ -115,12 +117,36 @@ const output = (content, logLevel) => {
   return content;
 };
 
+const toJson = (message, data, timestamp, level, serializer) => {
+  const logEntry = {
+    timestamp,
+    message,
+    level,
+  };
+
+  if (typeof serializer === 'function') {
+    Object.assign(logEntry, serializer(data));
+  } else if (typeof serializer === 'string') {
+    if (!config.serializers[serializer]) {
+      throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(data)}`);
+    }
+    Object.assign(logEntry, config.serializers[serializer](data));
+  } else if (data) {
+    Object.assign(logEntry, data);
+  }
+
+  return JSON.stringify(logEntry);
+};
+
 const doLog = (level) => {
-  return (content, serializer) => {
+  return (message, content, serializer) => {
     if (level >= config.logLevel) {
       const timestamp = config.timestampFormat === 'iso' ? (new Date()).toISOString() : strftime(config.timestampFormat);
+      if (config.logAsJson) {
+        return output(toJson(message, content, timestamp, level, serializer), level);
+      }
 
-      return output(formatLogEntry(config.logFormat, content, timestamp, level, serializer), level);
+      return output(formatLogEntry(config.logFormat, message, content, timestamp, level, serializer), level);
     }
 
     return null;

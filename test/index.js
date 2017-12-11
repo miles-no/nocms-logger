@@ -144,8 +144,8 @@ test('log object', (t) => {
   t.plan(1);
   sut = require('../'); // eslint-disable-line global-require
 
-  const result = sut.debug({ foo: 1, bar: 2 });
-  t.equal(result, '1 {\n  "foo": 1,\n  "bar": 2\n}');
+  const result = sut.debug('foo', { foo: 1, bar: 2 });
+  t.equal(result, '1 foo {\n  "foo": 1,\n  "bar": 2\n}');
 });
 
 test('custom serializer function', (t) => {
@@ -156,10 +156,10 @@ test('custom serializer function', (t) => {
   };
   sut = require('../'); // eslint-disable-line global-require
   sut.setConfig(config);
-  const result = sut.debug({ foo: 1, bar: 2 }, (fooobject) => {
+  const result = sut.debug('foo', { foo: 1, bar: 2 }, (fooobject) => {
     return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;
   });
-  t.equal(result, '1 Foo=1 and bar=2');
+  t.equal(result, '1 foo Foo=1 and bar=2');
 });
 
 test('custom serializer reference', (t) => {
@@ -175,10 +175,10 @@ test('custom serializer reference', (t) => {
   };
   sut = require('../'); // eslint-disable-line global-require
   sut.setConfig(config);
-  const result = sut.debug({ foo: 1, bar: 2 }, (fooobject) => {
+  const result = sut.debug('foo', { foo: 1, bar: 2 }, (fooobject) => {
     return `Foo=${fooobject.foo} and bar=${fooobject.bar}`;
   });
-  t.equal(result, '1 Foo=1 and bar=2');
+  t.equal(result, '1 foo Foo=1 and bar=2');
 });
 
 
@@ -187,7 +187,7 @@ test('invalid custom serializer', (t) => {
 
   sut = require('../'); // eslint-disable-line global-require
   t.throws(() => {
-    sut.debug({ foo: 1, bar: 2 }, 'invalidSerializer');
+    sut.debug('foo', { foo: 1, bar: 2 }, 'invalidSerializer');
   });
 });
 
@@ -195,6 +195,63 @@ test('should serialize Error objects with stack trace', (t) => {
   t.plan(1);
 
   sut = require('../'); // eslint-disable-line global-require
-  const result = sut.debug(new Error('foo'));
-  t.ok(/^1 Error: foo[\s]+at Test.test/.test(result));
+  const result = sut.debug('foo', new Error('foo'));
+  t.ok(/^1 foo Error: foo[\s]+at Test.test/.test(result));
+});
+
+test('log as json', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: true,
+  };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo');
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1}$/.test(result));
+});
+
+test('log as json with object', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: true,
+  };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo', { bar: 1 });
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"bar":1}$/.test(result));
+});
+
+test('log as json with custom serializer', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: true,
+  };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo', { bar: 1 }, (obj) => {
+    return { foo: obj.bar };
+  });
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"foo":1}$/.test(result));
+});
+
+test('log as json with default serializer for express', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: true,
+  };
+
+  const req = { method: 'GET', originalUrl: 'test' };
+  const res = { statusCode: 200 };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo', { req, res }, 'express');
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"express":{"req":{"method":"GET","url":"test"},"res":{"statusCode":200}}}$/.test(result));
 });
