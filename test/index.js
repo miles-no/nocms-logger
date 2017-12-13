@@ -270,5 +270,23 @@ test('express serializer returns other data', (t) => {
   sut = require('../'); // eslint-disable-line global-require
   sut.setConfig(config);
   const result = sut.debug('foo', { req, res, otherData }, 'express');
-  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"otherData":{"bar":2},"method":"GET","url":"test","query":"","statusCode":200}$/.test(result));
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"method":"GET","url":"test","query":"","statusCode":200,"otherData":{"bar":2}}$/.test(result));
+});
+
+test('express serializer returns stringified data when logAsJson is false', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: false,
+    logFormat: '%L %C',
+  };
+
+  const req = { method: 'GET', originalUrl: 'test' };
+  const res = { statusCode: 200 };
+  const otherData = { bar: 2 };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo', { req, res, otherData }, 'express');
+  t.equal(result, '1 foo {\n  "method": "GET",\n  "url": "test",\n  "query": "",\n  "statusCode": 200,\n  "otherData": {\n    "bar": 2\n  }\n}');
 });

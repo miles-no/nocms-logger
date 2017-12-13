@@ -47,13 +47,13 @@ const setConfig = (cfg = {}) => {
 const formatLogEntry = (formatStr, message, contentArg, timestamp, logLevel, serializer) => {
   let content;
   if (typeof serializer === 'function') {
-    content = serializer(contentArg);
+    content = serializer(contentArg, true);
   }
   if (typeof serializer === 'string') {
     if (!config.serializers[serializer]) {
       throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(contentArg)}`);
     }
-    content = config.serializers[serializer](contentArg);
+    content = config.serializers[serializer](contentArg, true);
   }
 
   const stringify = (contentObj) => {

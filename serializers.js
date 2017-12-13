@@ -1,4 +1,4 @@
-const express = ({ req, res, ...obj }) => {
+const express = ({ req, res, ...obj }, doStringify = false) => {
   const result = {};
   if (req) {
     Object.assign(result, {
@@ -34,7 +34,12 @@ const express = ({ req, res, ...obj }) => {
     }
   }
 
-  return Object.assign(obj, result);
+  Object.assign(result, obj);
+  if (doStringify) {
+    return JSON.stringify(result, null, '  ');
+  }
+
+  return result;
 };
 
 module.exports = {
