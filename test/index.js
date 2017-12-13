@@ -253,5 +253,22 @@ test('log as json with default serializer for express', (t) => {
   sut = require('../'); // eslint-disable-line global-require
   sut.setConfig(config);
   const result = sut.debug('foo', { req, res }, 'express');
-  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"express":{"req":{"method":"GET","url":"test"},"res":{"statusCode":200}}}$/.test(result));
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"method":"GET","url":"test","query":"","statusCode":200}$/.test(result));
+});
+
+test('express serializer returns other data', (t) => {
+  t.plan(1);
+
+  const config = {
+    logAsJson: true,
+  };
+
+  const req = { method: 'GET', originalUrl: 'test' };
+  const res = { statusCode: 200 };
+  const otherData = { bar: 2 };
+
+  sut = require('../'); // eslint-disable-line global-require
+  sut.setConfig(config);
+  const result = sut.debug('foo', { req, res, otherData }, 'express');
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1,"otherData":{"bar":2},"method":"GET","url":"test","query":"","statusCode":200}$/.test(result));
 });

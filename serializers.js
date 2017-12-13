@@ -1,15 +1,40 @@
-const express = ({ req, res }) => {
-  return {
-    express: {
-      req: {
-        method: req.method,
-        url: req.originalUrl || req.url,
-      },
-      res: {
-        statusCode: res.statusCode,
-      },
-    },
-  };
+const express = ({ req, res, ...obj }) => {
+  const result = {};
+  if (req) {
+    Object.assign(result, {
+      method: req.method,
+      url: req.originalUrl || req.url,
+      query: req.query || '',
+    });
+
+    if (typeof req.get === 'function') {
+      Object.assign(result, {
+        correlationId: req.get('x-correlation-id'),
+      });
+    }
+
+    if (req.connection) {
+      Object.assign(result, {
+        remoteAddress: req.connection.remoteAddress,
+        remotePort: req.connection.remotePort,
+      });
+    }
+  }
+
+  if (res) {
+    Object.assign(result, {
+      statusCode: res.statusCode,
+    });
+
+    if (res.locals) {
+      Object.assign(result, {
+        claims: typeof res.locals.claims === 'undefined' ? '' : res.locals.claims,
+        tokenValid: typeof res.locals.tokenValid === 'undefined' ? '' : res.locals.tokenValid,
+      });
+    }
+  }
+
+  return Object.assign(obj, result);
 };
 
 module.exports = {
