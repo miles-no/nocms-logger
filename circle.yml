@@ -7,5 +7,5 @@ test:
   post:
     - DEBUG=condition npm run semantic-release || true
 dependencies:
-  post:
+  pre:
     - rm -r ~/.npm
