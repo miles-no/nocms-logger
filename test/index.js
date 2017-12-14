@@ -306,3 +306,19 @@ test('express serializer returns stringified data when logAsJson is false', (t) 
   const result = sut.debug('foo', { req, res, otherData }, 'express');
   t.equal(result, '1 foo {\n  "method": "GET",\n  "url": "test",\n  "query": "",\n  "statusCode": 200,\n  "otherData": {\n    "bar": 2\n  }\n}');
 });
+
+test('colors', (t) => {
+  t.plan(4);
+
+  const config = {
+    useChalk: true,
+  };
+
+  sut = require('../src/'); // eslint-disable-line global-require
+  sut.setConfig(config);
+
+  t.ok(sut.debug('foo', { foo: 1, bar: 1 }));
+  t.ok(sut.info('foo', { foo: 1, bar: 1 }));
+  t.ok(sut.warn('foo', { foo: 1, bar: 1 }));
+  t.ok(sut.error('foo', { foo: 1, bar: 1 }));
+});

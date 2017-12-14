@@ -4,6 +4,7 @@ const chalk = require('chalk');
 const defaultSerializers = require('./serializers');
 
 const config = {};
+const Chalk = new chalk.constructor({ level: 1 });
 
 const logLevels = {
   debug: 1,
@@ -28,27 +29,33 @@ const getLogLevelString = (logLevel) => {
 };
 
 const getLogColor = (str, logLevel) => {
-  if (!config.chalk || config.logAsJson) {
+  if (!config.useChalk || config.logAsJson) {
     return str;
   }
 
   let color;
+  let bgColor;
   switch (logLevel) {
+    case 1:
     case 2:
-      color = 'cyan';
+      color = 'black';
+      bgColor = 'bgGreen';
       break;
     case 3:
-      color = 'yellow';
+      color = 'black';
+      bgColor = 'bgYellow';
       break;
     case 4:
-      color = 'red';
+      color = 'white';
+      bgColor = 'bgRed';
       break;
     default:
-      color = 'green';
+      color = 'white';
+      bgColor = 'bgBlackBright';
       break;
   }
 
-  return chalk[color](str);
+  return Chalk[color][bgColor](str);
 };
 
 const setConfig = (cfg = {}) => {
@@ -60,7 +67,7 @@ const setConfig = (cfg = {}) => {
   config.output = output || { all: 'console' };
   config.serializers = Object.assign(defaultSerializers, serializers || {});
   config.logAsJson = logAsJson || false;
-  config.chalk = useChalk || false;
+  config.useChalk = useChalk || false;
   if (logLevels[logLevel]) {
     config.logLevel = logLevels[logLevel];
   } else if (typeof logLevel === 'number' && logLevel <= logLevels.error && logLevel >= logLevels.debug) {
@@ -100,7 +107,7 @@ const formatLogEntry = (formatStr, message, contentArg, timestamp, logLevel, ser
   const fields = {
     '%T': getLogColor(timestamp, logLevel),
     '%C': content ? `${message} ${content}` : message,
-    '%L': getLogColor(logLevel, logLevel),
+    '%L': logLevel,
   };
   return formatStr.replace(/%[TLC]/g, (m) => {
     return fields[m] || m;
