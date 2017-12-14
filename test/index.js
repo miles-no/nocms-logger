@@ -97,6 +97,22 @@ test.skip('should log to file', (t) => {
   t.pass();
 });
 
+test('log level warn', (t) => {
+  t.plan(4);
+
+  const config = {
+    logLevel: 'warn',
+  };
+
+  sut = require('../src/'); // eslint-disable-line global-require
+
+  sut.setConfig(config);
+  t.notOk(sut.debug('foo'));
+  t.notOk(sut.info('foo'));
+  t.ok(sut.warn('foo'));
+  t.ok(sut.error('foo'));
+});
+
 test('log level error', (t) => {
   t.plan(4);
 

@@ -16,6 +16,7 @@
   "author": "Jørgen Landsnes",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^2.3.0",
     "fs": "0.0.1-security",
     "strftime": "^0.10.0"
   },
