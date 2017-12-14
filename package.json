@@ -2,8 +2,9 @@
   "name": "nocms-logger",
   "version": "0.0.0-semantic-release",
   "description": "Logger package for NoCMS services",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
+    "prepare": "babel ./src --out-dir ./lib",
     "test": "node test/",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "eslint": "eslint **/*.js"
@@ -20,6 +21,10 @@
     "strftime": "^0.10.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.34",
+    "@babel/core": "^7.0.0-beta.34",
+    "@babel/plugin-syntax-object-rest-spread": "^7.0.0-beta.34",
+    "@babel/preset-env": "^7.0.0-beta.34",
     "condition-circle": "1.5.0",
     "eslint": "^4.13.0",
     "eslint-config-webteam": "^2.0.0",
