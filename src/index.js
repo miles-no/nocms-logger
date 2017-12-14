@@ -86,7 +86,7 @@ const output = (content, logLevel) => {
   const outputConfig = config.output[logLevelString];
   const outputFunc = (oc) => {
     if (oc === 'console') {
-      console.log(content);
+      console.log(content); // eslint-disable-line no-console
     }
     if (oc === 'none') {
       return;
