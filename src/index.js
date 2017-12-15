@@ -164,6 +164,8 @@ const toJson = (message, data, timestamp, level, serializer) => {
       throw new Error(`Missing serializer ${serializer} for content: ${JSON.stringify(data)}`);
     }
     Object.assign(logEntry, config.serializers[serializer](data));
+  } else if (data instanceof Error) {
+    Object.assign(logEntry, { stack: data.stack });
   } else if (data) {
     Object.assign(logEntry, data);
   }
