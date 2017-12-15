@@ -59,14 +59,14 @@ const getLogColor = (str, logLevel) => {
 };
 
 const setConfig = (cfg = {}) => {
-  const { logLevel, timestampFormat, logFormat, output, serializers, logAsJson, useChalk } = cfg;
+  const { logLevel, timestampFormat, logFormat, output, serializers, logAsJson = true, useChalk } = cfg;
 
   config.logLevel = 1;
   config.timestampFormat = timestampFormat || 'iso';
   config.logFormat = logFormat || '%T %L %C';
   config.output = output || { all: 'console' };
   config.serializers = Object.assign(defaultSerializers, serializers || {});
-  config.logAsJson = logAsJson || false;
+  config.logAsJson = logAsJson;
   config.useChalk = useChalk || false;
   if (logLevels[logLevel]) {
     config.logLevel = logLevels[logLevel];

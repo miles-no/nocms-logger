@@ -7,7 +7,8 @@ test('default config', (t) => {
 
   sut = require('../src/'); // eslint-disable-line global-require
   const result = sut.debug('foo');
-  t.ok(/.*foo$/.test(result));
+
+  t.ok(/^\{"timestamp":".+","message":"foo","level":1}$/.test(result));
 });
 
 test('log level debug', (t) => {
@@ -133,6 +134,7 @@ test('custom date format', (t) => {
   t.plan(1);
 
   const config = {
+    logAsJson: false,
     timestampFormat: '%d.%m.%Y-%H:%M',
   };
 
@@ -146,6 +148,7 @@ test('custom date format', (t) => {
 test('custom format', (t) => {
   t.plan(1);
   const config = {
+    logAsJson: false,
     logFormat: '%L %C',
   };
 
@@ -158,7 +161,14 @@ test('custom format', (t) => {
 
 test('log object', (t) => {
   t.plan(1);
+
+  const config = {
+    logAsJson: false,
+    logFormat: '%L %C',
+  };
+
   sut = require('../src/'); // eslint-disable-line global-require
+  sut.setConfig(config);
 
   const result = sut.debug('foo', { foo: 1, bar: 2 });
   t.equal(result, '1 foo {\n  "foo": 1,\n  "bar": 2\n}');
@@ -168,6 +178,7 @@ test('custom serializer function', (t) => {
   t.plan(1);
 
   const config = {
+    logAsJson: false,
     logFormat: '%L %C',
   };
   sut = require('../src/'); // eslint-disable-line global-require
@@ -182,6 +193,7 @@ test('custom serializer reference', (t) => {
   t.plan(1);
 
   const config = {
+    logAsJson: false,
     logFormat: '%L %C',
     serializers: {
       fooSerializer: (fooobject) => {
@@ -311,6 +323,7 @@ test('colors', (t) => {
   t.plan(4);
 
   const config = {
+    logAsJson: false,
     useChalk: true,
   };
 
