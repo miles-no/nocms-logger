@@ -6,8 +6,8 @@
   "scripts": {
     "prepare": "babel ./src --out-dir ./lib",
     "test": "node test/",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "eslint": "eslint **/*.js"
+    "eslint": "eslint **/*.js",
+    "nsp": "nsp check"
   },
   "repository": {
     "type": "git",
@@ -25,15 +25,11 @@
     "@babel/core": "^7.0.0-beta.34",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.34",
     "@babel/preset-env": "^7.0.0-beta.34",
-    "condition-circle": "1.5.0",
     "eslint": "^4.13.0",
     "eslint-config-webteam": "^2.0.0",
-    "eslint-plugin-import": "^2.8.0",
-    "semantic-release": "^8.2.0",
+    "eslint-plugin-import": "^2.11.0",
+    "nsp": "^3.2.1",
+    "semantic-release": "^15.1.7",
     "tape": "^4.5.1"
-  },
-  "release": {
-    "verifyConditions": "condition-circle",
-    "debug": false
   }
 }
